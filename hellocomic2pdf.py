@@ -71,9 +71,6 @@ def get_image(image, chapter, comic_name, image_name):
 
     print str(percentage) + '% - ' + image_file
 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
     if not os.path.isfile(image_file):
         f = open(image_file, 'w+')
         f.write(get_url(image))
@@ -88,19 +85,35 @@ def get_images(page):
     page_html = pq(get_url(page))
     pages_pyq = page_html('#e1 option')
     base_url = page[:-(len(page) - page.rfind('/') - 2)]
+    comic_name = calculate_comic_name(page)
+    directory = downloads_folder + comic_name
+    progress_file = directory + '/progress'
+
+    check_progress_file(directory, progress_file)
 
     for p in range(1, len(pages_pyq) + 1):
         page_url = base_url + str(p)
-        current_page_html = pq(get_url(page_url))
-        current_image = current_page_html('.coverIssue img').attr.src
 
         if not finish_download:
-            get_image(
-                current_image,
-                calculate_chapter_name(page_url),
-                calculate_comic_name(page),
-                calculate_image_name(page_url)
-            )
+            image_name = calculate_image_name(page_url)
+            image_file = directory + '/' + image_name + '.jpg'
+
+            if not os.path.isfile(image_file) and not in_file(progress_file, image_file):
+                current_page_html = pq(get_url(page_url))
+                current_image = current_page_html('.coverIssue img').attr.src
+
+                get_image(
+                    current_image,
+                    calculate_chapter_name(page_url),
+                    comic_name,
+                    image_name
+                )
+
+                f = open(progress_file, 'w+')
+                f.write(image_file)
+                f.close
+            else:
+                log('Image ' + image_file + ' already downloaded', 'imager')
         else:
             print 'Bye! You can re-run the script anytime you want and continue the progress.'
             sys.exit(0)
@@ -219,9 +232,26 @@ def signal_handler(signal, frame):
 
     if signal is 2:  # Ctrl + C
         finish_download = True
-        print '\nWaiting to complete the current download...'
+        print '\n\nWaiting to complete the current download...'
     else:
         sys.exit(0)
+
+
+def check_progress_file(directory, progress_file):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    if not os.path.isfile(progress_file):
+        f = open(progress_file, 'w+')
+        f.close()
+
+
+def in_file(file, search):
+    with open(file, 'r') as inF:
+        for line in inF:
+            if search in line:
+                return True
+    return False
 
 
 def log(text, type=None):
