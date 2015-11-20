@@ -223,11 +223,18 @@ def init(init_url):
 
 
 def valdidate_init_url(url):
-    if 'www.hellocomic.com' in url and '/c' in url and '/p' in url:
-        return True
+    # http://www.hellocomic.com/comic/view?slug=injustice-gods-among-us
 
-    print 'Not a valid URL. It has to be the first page of the first chapter/issue of a comic from www.hellocomic.com/ (For now...)'
+    if 'www.hellocomic.com' in url:
+        if '/c' in url and '/p' in url:  # URL from a page. Ready to go!
+            return url
+        elif '/comic/view?slug=' in url:  # URL from main view of comic. Need to find the chapters here.
+            main_page = pq(get_url(url))
+            return main_page('#w0 a').eq(0).attr.href
 
+    print 'Not a valid URL.\n' +\
+          'It can be the main view of the comic: http://www.hellocomic.com/comic/view?slug=comic\n' +\
+          'Or any page of any chapter of the comic: http://www.hellocomic.com/comic/c42/p24'
     sys.exit(0)
 
 
@@ -296,6 +303,4 @@ if len(args) is not 1:
     print 'You need to give a URL from www.hellocomic.com'
     sys.exit(0)
 
-valdidate_init_url(args[0])
-
-init(args[0])
+init(valdidate_init_url(args[0]))
