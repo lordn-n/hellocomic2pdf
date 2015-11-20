@@ -109,9 +109,9 @@ def get_images(page):
                     image_name
                 )
 
-                f = open(progress_file, 'w+')
-                f.write(image_file)
-                f.close
+                with open(progress_file, 'a') as opened_progress_file:
+                    opened_progress_file.write(image_file + '\n')
+                    opened_progress_file.close()
             else:
                 log('Image ' + image_file + ' already downloaded', 'imager')
         else:
