@@ -1,7 +1,12 @@
 # hellocomic2pdf
 `hellocomic2pdf` is a script to download comics hosted at [hellocomic.com](http://www.hellocomic.com/) to a PDF file.
 
-Tested under Mac OS X. Should also work on Linux. Forget about windows...
+## Features
+- Download any comic from [hellocomic.com](http://www.hellocomic.com/) (If DOM hasn't changed since this last commit.)
+- Stop and re-run the script to continue where you left it.
+- Show progress (Still under work, but "functional")
+
+Tested under Mac OS X. Should also work on Linux but forget about windows...
 
 ## Dependencies
 - urllib2
