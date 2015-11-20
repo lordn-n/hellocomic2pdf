@@ -230,7 +230,7 @@ parser.add_option(
 )
 parser.add_option(
     '-p', '--path',
-    action='store', dest='path', default='./downloads/',
+    action='store', dest='path', default='downloads',
     help='Choose the base path to save the comics.'
 )
 
