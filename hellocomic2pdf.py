@@ -43,7 +43,7 @@ def get_url(url):
 
     last_url_get = url
     headers = {
-        'User-Agent': '@Lordn_n Comic Downloader',
+        'User-Agent': '@Lordn_n hellocomic2pdf',
         'Accept': '*/*'
     }
     request = urllib2.Request(url, headers=headers)
