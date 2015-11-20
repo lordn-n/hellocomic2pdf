@@ -21,7 +21,6 @@ from reportlab.platypus import SimpleDocTemplate, Image, PageBreak
 
 args = {}
 options = {}
-all_images = {}
 last_page = False
 next_page = None
 total_images = 0
@@ -59,16 +58,16 @@ def get_url(url):
 
 
 def get_image(image, chapter, comic_name, image_name):
-    global all_images
     global total_images
     global expected_num_of_images
 
     directory = downloads_folder + comic_name
     image_file = directory + '/' + image_name + '.jpg'
+    percentage = (total_images * 100) / expected_num_of_images
 
     log('Saving image "' + image_file + '"', 'imager')
 
-    print image_file
+    print str(percentage) + '% - ' + image_file
 
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -81,6 +80,24 @@ def get_image(image, chapter, comic_name, image_name):
         log('Image already exists', 'imager')
 
     total_images = total_images + 1
+
+
+def get_images(page):
+    page_html = pq(get_url(page))
+    pages_pyq = page_html('#e1 option')
+    base_url = page[:-(len(page) - page.rfind('/') - 2)]
+
+    for p in range(1, len(pages_pyq) + 1):
+        page_url = base_url + str(p)
+        current_page_html = pq(get_url(page_url))
+        current_image = current_page_html('.coverIssue img').attr.src
+
+        get_image(
+            current_image,
+            calculate_chapter_name(page_url),
+            calculate_comic_name(page),
+            calculate_image_name(page_url)
+        )
 
 
 def calculate_comic_name(page):
@@ -114,24 +131,6 @@ def calculate_chapter_name(page, type='full'):
         return ('chapter-' if type == 'full' else '') + regex.group(1)
     else:
         return page
-
-
-def get_images(page):
-    page_html = pq(get_url(page))
-    pages_pyq = page_html('#e1 option')
-    base_url = page[:-(len(page) - page.rfind('/') - 2)]
-
-    for p in range(1, len(pages_pyq) + 1):
-        page_url = base_url + str(p)
-        current_page_html = pq(get_url(page_url))
-        current_image = current_page_html('.coverIssue img').attr.src
-
-        get_image(
-            current_image,
-            calculate_chapter_name(page_url),
-            calculate_comic_name(page),
-            calculate_image_name(page_url)
-        )
 
 
 def sorted_nicely(l):
@@ -170,7 +169,6 @@ def create_comic(fname, path):
 
 def init(init_url):
     global options
-    global all_images
     global total_images
     global expected_num_of_images
 
