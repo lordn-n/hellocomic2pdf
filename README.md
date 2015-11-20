@@ -1,6 +1,7 @@
 # hellocomic2pdf
-`hellocomic2pdf` is a script to download comics hosted at
-[hellocomic.com](http://www.hellocomic.com/) to a PDF file.
+`hellocomic2pdf` is a script to download comics hosted at [hellocomic.com](http://www.hellocomic.com/) to a PDF file.
+
+Tested under Mac OS X. Should also work on Linux. Forget about windows...
 
 ## Dependencies
 - urllib2
@@ -11,7 +12,7 @@
 Place `hellocomic2pdf` somewhere in your `PATH`. And give the URL of any page of the comic you want to download (Ex. `http://www.hellocomic.com/super-cool-comic/c20/p1`).
 
 ```
-❯ hellocomic http://www.hellocomic.com/super-cool-comic/c20/p1
+$ hellocomic2pdf http://www.hellocomic.com/super-cool-comic/c20/p1
 There are 4 chapters.
 The first chapter has 18 pages.
 Assuming all chapters has the same number of pages; it will be a total 72 of images.
