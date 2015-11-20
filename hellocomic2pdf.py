@@ -27,7 +27,7 @@ next_page = None
 total_images = 0
 last_page_get = ''
 last_url_get = ''
-downloads_folder = './downloads/'
+downloads_folder = ''
 expected_num_of_images = 0
 last_comic_name_calculated = None
 
@@ -85,6 +85,7 @@ def get_image(image, chapter, comic_name, image_name):
 
 def calculate_comic_name(page):
     global last_comic_name_calculated
+
     if last_comic_name_calculated is None or last_comic_name_calculated not in page:
         regex = re.search('.com\/(.+)\/c', page)
 
@@ -116,7 +117,6 @@ def calculate_chapter_name(page, type='full'):
 
 
 def get_images(page):
-
     page_html = pq(get_url(page))
     pages_pyq = page_html('#e1 option')
     base_url = page[:-(len(page) - page.rfind('/') - 2)]
@@ -205,7 +205,7 @@ def valdidate_init_url(url):
     if 'www.hellocomic.com' in url and '/c' in url and '/p' in url:
         return True
 
-    print 'Not a valid URL. It has to be the first page of the first chapter/issue of a comic from www.hellocomic.com/'
+    print 'Not a valid URL. It has to be the first page of the first chapter/issue of a comic from www.hellocomic.com/ (For now...)'
 
     sys.exit(0)
 
@@ -228,10 +228,22 @@ parser.add_option(
     action='store_true', dest='delete', default=False,
     help='Delete all images downloader after the PDF creation.'
 )
+parser.add_option(
+    '-p', '--path',
+    action='store', dest='path', default='./downloads/',
+    help='Choose the base path to save the comics.'
+)
 
 (options, args) = parser.parse_args()
 
-if len(args) is 0:
+# Fix the path or send the user to fuck him self
+if '.' in options.path or '/' in options.path:
+    print 'The path (-p --path) doesn\'t need/support slashes or dots'
+    sys.exit(0)
+else:
+    downloads_folder = './' + options.path + '/'
+
+if len(args) is not 1:
     print 'You need to give a URL from www.hellocomic.com'
     sys.exit(0)
 
