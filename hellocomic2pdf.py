@@ -11,6 +11,7 @@ import re
 import os
 import sys
 import glob
+import signal
 import urllib2
 
 from optparse import OptionParser
@@ -26,6 +27,7 @@ next_page = None
 total_images = 0
 last_page_get = ''
 last_url_get = ''
+finish_download = False
 downloads_folder = ''
 expected_num_of_images = 0
 last_comic_name_calculated = None
@@ -92,12 +94,16 @@ def get_images(page):
         current_page_html = pq(get_url(page_url))
         current_image = current_page_html('.coverIssue img').attr.src
 
-        get_image(
-            current_image,
-            calculate_chapter_name(page_url),
-            calculate_comic_name(page),
-            calculate_image_name(page_url)
-        )
+        if not finish_download:
+            get_image(
+                current_image,
+                calculate_chapter_name(page_url),
+                calculate_comic_name(page),
+                calculate_image_name(page_url)
+            )
+        else:
+            print 'Bye! You can re-run the script anytime you want and continue the progress.'
+            sys.exit(0)
 
 
 def calculate_comic_name(page):
@@ -142,7 +148,7 @@ def sorted_nicely(l):
 def create_comic(fname, path):
     filename = os.path.join(path, fname + ".pdf")
 
-    if os.isfile(filename):
+    if os.path.isfile(filename):
         os.unlink(filename)
 
     doc = SimpleDocTemplate(
@@ -177,7 +183,7 @@ def init(init_url):
     pages_pyq = page('#e1 option')
     expected_num_of_images = (len(chapters_pyq) * len(pages_pyq))
 
-    print 'There are %i chapters.\nThe first chapter has %i pages.\nAssuming all chapters has the same number of pages; it will be a total %i of images.\n\n' % (len(chapters_pyq), len(pages_pyq), expected_num_of_images)
+    print 'There are %i chapters.\nThe first chapter has %i pages.\nAssuming all chapters has the same number of pages; it will be a total %i of images.\n' % (len(chapters_pyq), len(pages_pyq), expected_num_of_images)
 
     for chapter in chapters_pyq:
         chapter = pq(chapter).attr.value
@@ -208,12 +214,23 @@ def valdidate_init_url(url):
     sys.exit(0)
 
 
+def signal_handler(signal, frame):
+    global finish_download
+
+    if signal is 2:  # Ctrl + C
+        finish_download = True
+        print '\nWaiting to complete the current download...'
+    else:
+        sys.exit(0)
+
+
 def log(text, type=None):
     global options
 
     if options.debug:
         print ('' if type is None else '  [' + type + '] >>> ') + text
 
+signal.signal(signal.SIGINT, signal_handler)
 
 parser = OptionParser()
 parser.add_option(
