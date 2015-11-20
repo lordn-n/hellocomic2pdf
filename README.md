@@ -32,7 +32,6 @@ Enjoy! :D
 - Add search.
 - Be more smart about the given URL (Be able to give any URL related to the comic and find the list of links).
 - Add progressbar. (Now it show a progress. But I want to implement [progressbar2](http://pythonhosted.org/progressbar2/))
-- Fix the current progress status, when re-run it does not show the correct percentage.
 - Clean this crap.
 - Speed the whole thing!
 

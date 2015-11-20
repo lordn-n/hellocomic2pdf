@@ -82,6 +82,8 @@ def get_image(image, chapter, comic_name, image_name):
 
 
 def get_images(page):
+    global total_images
+
     page_html = pq(get_url(page))
     pages_pyq = page_html('#e1 option')
     base_url = page[:-(len(page) - page.rfind('/') - 2)]
@@ -90,6 +92,8 @@ def get_images(page):
     progress_file = directory + '/progress'
 
     check_progress_file(directory, progress_file)
+
+    total_images = sum(1 for line in open(progress_file))
 
     for p in range(1, len(pages_pyq) + 1):
         page_url = base_url + str(p)
