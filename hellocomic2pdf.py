@@ -126,16 +126,14 @@ def get_images(page):
 def calculate_comic_name(page):
     global last_comic_name_calculated
 
-    if last_comic_name_calculated is None or last_comic_name_calculated not in page:
-        regex = re.search('.com\/(.+)\/c', page)
+    regex = re.search('.com\/(.+)\/c', page)
 
-        if len(regex.groups()) is 1:
-            last_comic_name_calculated = regex.group(1)
-            return regex.group(1)
-        else:
-            return page
-    elif last_comic_name_calculated is not None:
-        return last_comic_name_calculated
+    if regex is not None and len(regex.groups()) is 1:
+        last_comic_name_calculated = regex.group(1)
+        return regex.group(1)
+    else:
+        log('Could not calculate comic name for: "' + page + '"', 'calculate_comic_name')
+        return page
 
 
 def calculate_image_name(page):
@@ -188,6 +186,57 @@ def create_comic(fname, path):
 
     doc.build(Story)
     print '%s created.\nEnjoy! :D' % filename
+
+
+def search(query):
+    selection = None
+    all_comics = {}
+    search_page = pq(get_url('http://www.hellocomic.com/issue/search?q=' + query))
+    next_page = search_page('.next a')
+    no_results = search_page('.empty')
+
+    if len(no_results) is 1:
+        print 'No results.'
+        sys.exit(0)
+    else:
+        print 'Results found!...\n\nChecking page #1'
+
+    while len(next_page) is 1:
+        current_comics = search_page('a.issueName')
+        current_page = search_page('.pagination .active a')
+
+        print 'Checking page #%s' % (int(current_page.text()) + 1)
+
+        for comic in current_comics:
+            comic = pq(comic)
+            comic_name = calculate_comic_name(comic.attr.href)
+
+            if comic_name not in all_comics.keys():
+                all_comics[comic_name] = {
+                    'url': comic.attr.href,
+                    'name': comic.text()[:-(len(comic.text()) - comic.text().rfind(' #'))].replace('-', ''),
+                    'id': (len(all_comics.keys()) + 1)
+                }
+
+        search_page = pq(get_url('http://www.hellocomic.com' + next_page.attr.href))
+        next_page = search_page('.next a')
+
+    print '\nFound %s comics:' % len(all_comics)
+    if len(all_comics) > 0:
+        for comic in all_comics:
+            print '%i) %s' % (all_comics[comic]['id'], all_comics[comic]['name'])
+
+        while selection not in range(0, len(all_comics.keys())):
+            pre_selection = raw_input('Please select one: ')
+            if pre_selection.isdigit():
+                selection = int(pre_selection)
+
+        for comic in all_comics:
+            if all_comics[comic]['id'] is selection:
+                print 'Will download "%s"' % all_comics[comic]['name']
+                init(all_comics[comic]['url'])
+
+    sys.exit(0)
 
 
 def init(init_url):
@@ -271,8 +320,6 @@ def log(text, type=None):
     if options.debug:
         print ('' if type is None else '  [' + type + '] >>> ') + text
 
-signal.signal(signal.SIGINT, signal_handler)
-
 parser = OptionParser()
 parser.add_option(
     '-d', '--debug',
@@ -289,6 +336,11 @@ parser.add_option(
     action='store', dest='path', default='downloads',
     help='Choose the base path to save the comics.'
 )
+parser.add_option(
+    '-s', '--search',
+    action='store', dest='search',
+    help='Search for comics!'
+)
 
 (options, args) = parser.parse_args()
 
@@ -299,8 +351,14 @@ if '.' in options.path or '/' in options.path:
 else:
     downloads_folder = './' + options.path + '/'
 
+if options.search is not None:
+    print 'Searching for "' + options.search + '"'
+    search(options.search)
+
 if len(args) is not 1:
     print 'You need to give a URL from www.hellocomic.com'
     sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 init(valdidate_init_url(args[0]))
